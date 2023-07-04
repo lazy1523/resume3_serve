@@ -18,8 +18,8 @@ RUN npm ci --only=production
 
 FROM node:18.15.0-alpine
 WORKDIR /app
-COPY --from=node_modules /tmp/app/node_modules .
-COPY --from=builder /tmp/app/dist .
+COPY --from=node_modules /tmp/app/node_modules ./node_modules
+COPY --from=builder /tmp/app/dist ./dist
 
 COPY env-example .env
 
