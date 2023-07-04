@@ -22,5 +22,3 @@ COPY --from=node_modules /tmp/app/node_modules ./node_modules
 COPY --from=builder /tmp/app/dist ./dist
 
 COPY env-example .env
-
-CMD ["node dist/main.js"]
