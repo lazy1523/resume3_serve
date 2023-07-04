@@ -5,7 +5,7 @@ import { Order, OrderSchema } from 'src/models/order';
 import { CreateOrderDTO } from './dto/createOrder.dto';
 import { OrderParamsDTO } from './dto/orderParams.dto';
 import { CancelOrderDTO } from './dto/cancelOrder.dto';
-import { OrderEstimatesDTO } from './dto/OrderEstimates.dto';
+import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
 
 @Injectable()
 export class OrderService {

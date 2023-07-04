@@ -15,7 +15,7 @@ import Erc20ABI from 'src/config/abi/mock/MockERC20.json';
 import SubBundlerABI from 'src/config/abi/wallet/SubBundler.json';
 import { ChainIdService } from 'src/support/blockchain/service/chainId.service';
 import { Transfer } from 'src/models/transfer';
-import { GasFeeCalculatorDTO } from './dto/GasFeeCalculator.dto';
+import { GasFeeCalculatorDTO } from './dto/gasFeeCalculator.dto';
 
 
 @Injectable()
