@@ -1,0 +1,145 @@
+{
+    "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [],
+          "name": "bundler",
+          "outputs": [
+            {
+              "internalType": "contract Bundler",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "name": "bundlerCallback",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "poolAddr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "borrowAmount0",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "borrowAmount1",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "name": "executeFlash",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "ethBefore",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "ethAfter",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address[]",
+              "name": "toArr",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "valueArr",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "dataArr",
+              "type": "bytes[]"
+            }
+          ],
+          "name": "executeOp",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "ethBefore",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "ethAfter",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "name": "uniswapV3FlashCallback",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "stateMutability": "payable",
+          "type": "receive"
+        }
+      ]
+}

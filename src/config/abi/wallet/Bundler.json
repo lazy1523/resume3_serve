@@ -1,0 +1,66 @@
+{
+    "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "internalType": "uint8",
+              "name": "i",
+              "type": "uint8"
+            }
+          ],
+          "name": "Error",
+          "type": "event"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bool[]",
+              "name": "typeArr",
+              "type": "bool[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "bytesArr",
+              "type": "bytes[]"
+            }
+          ],
+          "name": "bundle",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "owner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "subBundler",
+          "outputs": [
+            {
+              "internalType": "contract SubBundler",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ]
+}
