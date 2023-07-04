@@ -16,6 +16,8 @@ import SubBundlerABI from 'src/config/abi/wallet/SubBundler.json';
 import { ChainIdService } from 'src/support/blockchain/service/chainId.service';
 import { Transfer } from 'src/models/transfer';
 import { GasFeeCalculatorDTO } from './dto/gasFeeCalculator.dto';
+import { BusinessException } from 'src/support/code/BusinessException';
+import { ErrorCode } from 'src/support/code/ErrorCode';
 
 
 @Injectable()
@@ -92,13 +94,12 @@ export class AccountService {
                     decimals: 18
                 })
             } else {
+                try {
                 const contract = new ethers.Contract(token, Erc20ABI.abi, provider);
                 const balance = await contract.balanceOf(getBalanceDTO.wallet);
                 const erc20_name = await contract.name();
                 const decimals = await contract.decimals();
                 const symbol = await contract.symbol();
-
-                this.logger.log(`ERC20 ${token} balance: ${balance.toString()}`);
                 data.push({
                     address: token,
                     balance: balance.toString(),
@@ -106,6 +107,10 @@ export class AccountService {
                     symbol: symbol,
                     decimals: decimals
                 })
+            } catch (e) {
+                this.logger.error(`getBalance error: ${e}`);
+                BusinessException.throwBusinessException(ErrorCode.ERC20_Error)
+            }
             }
         }
         return data;

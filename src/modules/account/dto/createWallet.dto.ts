@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty ,IsEthereumAddress} from "class-validator";
-// import { IsEthereumAddress } from "src/support/validators/IsEthereumAddress";
 import { IsSupportedChainId } from "src/support/validators/IsSupportedChainId";
 
 export class CreateWalletDTO{

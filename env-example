@@ -1,8 +1,9 @@
 APP_NAME=ZKsafe V2
 APP_VERSION=1.0.0
-APP_PORT=
+APP_PORT=6327
 API_PREFIX=api
-MONGO_URL=
-OP_RPC=
-LOCAL_RPC=http://localhost:8545
-V2_TEST_PK=
+MONGO_URL=mongodb://mongo:J84tg1TJ2xNGZMjJwAWn@containers-us-west-191.railway.app:7452
+OP_RPC=https://opt-mainnet.g.alchemy.com/v2/5bcCIrNMuuZ1eyTsfi8f_0tlFvS2a2Yz
+LOCAL_RPC=http://127.0.0.1:8545
+V2_TEST_PK=7d555417187b25bb06873d8eccb7e01ec7a2e496b6e006d61f0b1fbb5aa7949e #612
+# V2_TEST_PK=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 #2266

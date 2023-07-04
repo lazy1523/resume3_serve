@@ -9,22 +9,16 @@ import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
 
 @Injectable()
 export class OrderService {
-
-
-
     private logger: Logger = new Logger(OrderService.name);
 
     constructor(@InjectModel('Order') private orderModel: Model<Order>) { }
-
-    getHello(): string {
-        return 'Hello ZKsafe New Version';
-    }
 
     public async getOrderParams(orderParams: OrderParamsDTO): Promise<any> {
         throw new Error('Method not implemented.');
     }
 
     public async createOrder(createOrder: CreateOrderDTO): Promise<Order> {
+        this.orderModel.findById
         const order = new this.orderModel({
             orderId: "1",
             tokenOutAddr: "dto.tokenOutAddr",

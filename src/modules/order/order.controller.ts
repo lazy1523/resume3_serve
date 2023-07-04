@@ -5,46 +5,73 @@ import { CreateOrderDTO } from './dto/createOrder.dto';
 import { OrderParamsDTO } from './dto/orderParams.dto';
 import { CancelOrderDTO } from './dto/cancelOrder.dto';
 import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
+import { ApiResult } from 'src/support/code/ApiResult';
 
 @ApiTags('Order')
 @Controller({ path: 'order', version: '1' })
 export class OrderController {
-  private logger: Logger = new Logger(OrderController.name);
-
+  
   constructor(private readonly orderService: OrderService) { }
 
+  /**
+   * 
+   * @param orderParams 
+   * @returns 
+   */
   @Post('getOrderParams')
   @HttpCode(HttpStatus.OK)
-  async getOrderParams(@Body() orderParams: OrderParamsDTO): Promise<any> {
-    this.logger.log(`getOrderParams: ${JSON.stringify(orderParams)}`);
-    return await this.orderService.getOrderParams(orderParams);
+  async getOrderParams(@Body() orderParams: OrderParamsDTO): Promise<ApiResult> {
+    const result= await this.orderService.getOrderParams(orderParams);
+    return ApiResult.SUCCESS(result);
+     
   }
 
+  /**
+   * 
+   * @param createOrder 
+   * @returns 
+   */
   @Post('createOrder')
   @HttpCode(HttpStatus.OK)
-  async createOrder(@Body() createOrder: CreateOrderDTO): Promise<any> {
-    this.logger.log(`createOrder: ${JSON.stringify(createOrder)}`);
-    return await this.orderService.createOrder(createOrder);
+  async createOrder(@Body() createOrder: CreateOrderDTO): Promise<ApiResult> {
+    const result= await this.orderService.createOrder(createOrder);
+    return ApiResult.SUCCESS(result);
   }
 
+  /**
+   * 
+   * @param cancelOrderDTO 
+   * @returns 
+   */
   @Post('cancelOrder')
   @HttpCode(HttpStatus.OK)
-  async cancelOrder(@Body() cancelOrderDTO: CancelOrderDTO): Promise<any> {
-    return await this.orderService.cancelOrder(cancelOrderDTO);
+  async cancelOrder(@Body() cancelOrderDTO: CancelOrderDTO): Promise<ApiResult> {
+    const result= await this.orderService.cancelOrder(cancelOrderDTO);
+    return ApiResult.SUCCESS(result);
   }
 
+  /**
+   * 
+   * @param getOrdersDTO 
+   * @returns 
+   */
   @Post('getOrders')
   @HttpCode(HttpStatus.OK)
-  async getOrders(@Body() getOrdersDTO: CancelOrderDTO): Promise<any> {
-    this.logger.log(`getOrders: ${JSON.stringify(getOrdersDTO)}`);
-    return await this.orderService.getOrders(getOrdersDTO);
+  async getOrders(@Body() getOrdersDTO: CancelOrderDTO): Promise<ApiResult> {
+    const result= await this.orderService.getOrders(getOrdersDTO);
+    return ApiResult.SUCCESS(result);
   }
 
+  /**
+   * 
+   * @param orderEstimatesDTO 
+   * @returns 
+   */
   @Post('getOrderEstimates')
   @HttpCode(HttpStatus.OK)
-  async getOrderEstimates(@Body() orderEstimatesDTO: OrderEstimatesDTO): Promise<any> {
-    this.logger.log(`getOrderEstimates: ${JSON.stringify(orderEstimatesDTO)}`);
-    return await this.orderService.getOrderEstimates(orderEstimatesDTO);
+  async getOrderEstimates(@Body() orderEstimatesDTO: OrderEstimatesDTO): Promise<ApiResult> {
+    const result= await this.orderService.getOrderEstimates(orderEstimatesDTO);
+    return ApiResult.SUCCESS(result);
   }
 
 
