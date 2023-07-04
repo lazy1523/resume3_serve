@@ -5,7 +5,7 @@ import { CreateWalletDTO } from "./dto/createWallet.dto";
 import { GetBalanceDTO } from "./dto/getBalance.dto";
 import { CreateTransferDTO } from "./dto/createTransfer.dto";
 import { ExecuteTransferDTO } from "./dto/executeTransfer.dto";
-import { GasFeeCalculatorDTO } from "./dto/GasFeeCalculator.dto";
+import { GasFeeCalculatorDTO } from "./dto/gasFeeCalculator.dto";
 import { ApiResult } from "src/support/code/ApiResult";
 
 @ApiTags('Account')

@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { CreateOrderDTO } from './dto/createOrder.dto';
 import { OrderParamsDTO } from './dto/orderParams.dto';
 import { CancelOrderDTO } from './dto/cancelOrder.dto';
-import { OrderEstimatesDTO } from './dto/OrderEstimates.dto';
+import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
 
 @ApiTags('Order')
 @Controller({ path: 'order', version: '1' })
@@ -12,10 +12,6 @@ export class OrderController {
   private logger: Logger = new Logger(OrderController.name);
 
   constructor(private readonly orderService: OrderService) { }
-
-
-  // router.post('/order/getOrderEstimates', getOrderEstimates)
-
 
   @Post('getOrderParams')
   @HttpCode(HttpStatus.OK)
