@@ -18,4 +18,6 @@ export class ErrorCode {
     static CREATE_TRANSFER_ERROR = { code: -1012, msg: 'Create transfer error' };
     static EXECUTE_TRANSFER_ERROR = { code: -1013, msg: 'Execute transfer error' };
     static ERC20_Error = { code: -1014, msg: 'This is not a normal ERC20 contract' };
+    static SIGNATURE_ERROR = { code: -1015, msg: 'signature error' };
+    static ADDRESS_ZERO_ERROR={code:-1016,msg:'address zero error'}
 }

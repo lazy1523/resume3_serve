@@ -1,4 +1,13 @@
 import { Document, Schema,Mongoose } from 'mongoose';
+export const ORDER_STATUS = {
+  PENDING: 'Pending',
+  MATCHING: 'Matching',
+  EXECUTING: 'Executing',
+  DONE: 'Done',
+  CANCELLED: 'Cancelled',
+  FAIL: 'Fail',
+};
+
 export const OrderSchema = new Schema({
     orderId: String,
     tokenOutAddr: String,
@@ -15,7 +24,11 @@ export const OrderSchema = new Schema({
       symbol: String,
       decimals: Number
     },
-    status: String,
+    status: {
+      type: String,
+      enum: Object.values(ORDER_STATUS),
+      default: ORDER_STATUS.PENDING
+    },
     json: Object,
     fromWallet: String,
     tradeType:String,
