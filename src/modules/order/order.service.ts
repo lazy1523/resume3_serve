@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Order, OrderSchema } from 'src/models/order';
+import { Model, Types } from 'mongoose';
+import { ORDER_STATUS, Order, OrderSchema } from 'src/models/order';
 import { CreateOrderDTO } from './dto/createOrder.dto';
 import { OrderParamsDTO } from './dto/orderParams.dto';
 import { CancelOrderDTO } from './dto/cancelOrder.dto';
 import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
 import SmartWalletABI from 'src/config/abi/wallet/SmartWallet.json';
+import ERC20ABI from 'src/config/abi/mock/MockERC20.json';
 import { EthereumService } from 'src/support/blockchain/service/ethereum.service';
 import { ethers, utils, BigNumber } from 'ethers';
 import { ChainIdService } from 'src/support/blockchain/service/chainId.service';
@@ -37,14 +38,22 @@ export class OrderService {
 
     public async createOrder(createOrder: CreateOrderDTO): Promise<any> {
         this.logger.log(`createOrder: ${JSON.stringify(createOrder)}`);
-        const { rpc, calls, sign } = createOrder.json
+        const { rpc, calls, sign }: any = createOrder.json
         const provider = this.ethereumService.getProvider(rpc.chainId);
+        this.logger.log(`provider: ${JSON.stringify(provider)}`);
         const chainInfo = this.chainService.getChainInfoByChainId(rpc.chainId);
+        let valid, owner;
 
-        const smartWallet = new ethers.Contract(sign.fromWallet, SmartWalletABI.abi, provider);
-        const wallet = smartWallet.attach(sign.fromWallet);
-        const valid = await wallet.valid()
-        const owner = await wallet.owner()
+        try {
+            const smartWallet = new ethers.Contract(sign.fromWallet, SmartWalletABI.abi, provider);
+            const wallet = smartWallet.attach(sign.fromWallet);
+            valid = await wallet.valid()
+            owner = await wallet.owner()
+        } catch (e) {
+            BusinessException.throwBusinessException(ErrorCode.CONNECT_CONTRACT_WALLET_ERROR)
+        }
+
+
 
         const { hash } = this.atomSignParams({
             fromWallet: sign.fromWallet,
@@ -53,57 +62,70 @@ export class OrderService {
             deadline: sign.deadline,
             chainId: parseInt(rpc.chainId)
         })
+
+        if (sign.signature === "" || sign.signature === "...") {
+            BusinessException.throwBusinessException(ErrorCode.SIGNATURE_ERROR)
+        }
+
         const verifyOwner = utils.verifyMessage(utils.arrayify(hash), sign.signature);
         if (verifyOwner === ethers.constants.AddressZero || owner === ethers.constants.AddressZero) {
-            throw BusinessException.throwBusinessException(ErrorCode.ADDRESS_ZERO_ERROR)
+            BusinessException.throwBusinessException(ErrorCode.ADDRESS_ZERO_ERROR)
         }
         if (owner !== verifyOwner) {
-            throw BusinessException.throwBusinessException(ErrorCode.SIGNATURE_ERROR)
+            BusinessException.throwBusinessException(ErrorCode.SIGNATURE_ERROR)
         }
-        // createOrder.json.sign.owner = owner;
-        // if (calls.length == 2) {
-        //     const call0 = calls[0]
-        //     const call1 = calls[1]
-        //     if (call0.to == chainInfo.SubBundlerAddr && call0.value == '0') { // transfer Token to fromWallet
-        //         let order = await this.decodeOrder(createOrder.json)
-        //         order.tokenOutInfo = await tokenHelp.getTokenInfo(order.tokenOutAddr)
-        //         order.tokenInInfo = await tokenHelp.getTokenInfo(order.tokenInAddr)
+        sign.owner = owner;
+        if (calls.length == 2) {
+            const call0 = calls[0]
+            const call1 = calls[1]
+            if (call0.to == chainInfo.SubBundlerAddr && call0.value == '0') { // transfer Token to fromWallet
+                let order: any = await this.decodeOrder(createOrder.json)
+            
+                order.tokenOutInfo = await this.getTokenInfo(order.tokenOutAddr, rpc.chainId)
+                order.tokenInInfo = await this.getTokenInfo(order.tokenInAddr, rpc.chainId)
+        
+                order.json = createOrder.json
+                order.status = ORDER_STATUS.PENDING;
+                order.fromWallet = sign.fromWallet
+                order.createAt = new Date();
+                order.updateAt = new Date();
 
-        //         order.json = json
-        //         order.status = ORDER_STATUS.Pending
-        //         order.fromWallet = sign.fromWallet
-        //         order.createAt = new Date();
-        //         order.updateAt = new Date();
-        //         console.log('[bundle][tradeType] order:', order.tradeType)
-        //         const newOrder = new OrderModel(order);
-        //         await newOrder.save();
-        //         return {
-        //             tokenOutAddr: order.tokenOutAddr,
-        //             tokenOutAmount: order.tokenOutAmount,
-        //             tokenOutInfo: order.tokenOutInfo,
-        //             tokenInAddr: order.tokenInAddr,
-        //             tokenInAmount: order.tokenInAmount,
-        //             tokenInInfo: order.tokenInInfo,
-        //             createAt: order.createAt,
-        //             updateAt: order.updateAt,
-        //             status: order.status
-        //         }
+                const newOrder = new this.orderModel(order);
+                const result = await newOrder.save();
 
-        //     } else {
-        //         throw new Error('submitAtomSign not support')
-        //     }
-        // } else {
-        //     throw new Error('submitAtomSign not support')
-        // }
+                return result;
 
-
-
-        // const order = {};
-        // return await this.orderModel.create(order);
+            } else {
+                BusinessException.throwBusinessException(ErrorCode.SUBMIT_ATOM_SIGN_ERROR)
+            }
+        } else {
+            BusinessException.throwBusinessException(ErrorCode.SUBMIT_ATOM_SIGN_ERROR)
+        }
     }
 
     public async cancelOrder(cancelOrderDTO: CancelOrderDTO): Promise<any> {
-        throw new Error('Method not implemented.');
+        const orderId = new Types.ObjectId(cancelOrderDTO.orderId);
+
+        const order:any= await this.orderModel.findOne({_id:orderId,status:ORDER_STATUS.PENDING})
+        
+        if(!order){
+            BusinessException.throwBusinessException(ErrorCode.ORDER_NOT_FOUND)
+        }
+        try{
+            const verifyOwner = utils.verifyMessage(cancelOrderDTO.orderId, cancelOrderDTO.signature);
+            if (order.json.sign.owner.toLowerCase() !== verifyOwner.toLowerCase()) {
+                BusinessException.throwBusinessException(ErrorCode.SIGNATURE_VERIFICATION_FAILED)
+            }
+        }catch(e){
+            BusinessException.throwBusinessException(ErrorCode.CONNECT_CONTRACT_WALLET_ERROR)
+        }
+
+      
+        order.json.sign.signature = "";
+        order.status = ORDER_STATUS.CANCELLED;
+        order.updatedAt = new Date();
+        await order.save();
+
     }
 
     public async getOrders(getOrdersDTO: CancelOrderDTO): Promise<any> {
@@ -210,7 +232,7 @@ export class OrderService {
         const provider = this.ethereumService.getProvider(chainId);
         const smartWallet = new ethers.Contract(fromWallet, SmartWalletABI.abi, provider);
         const { toArr, valueArr, dataArr } = this.toAtomOp(calls)
-
+        this.logger.log(`atomSignParams:${valid}`)
         let calldata = smartWallet.interface.encodeFunctionData('atomSignCall', [toArr, valueArr, dataArr, deadline, '0x'])
         calldata = utils.hexConcat([calldata, utils.hexZeroPad(chainId, 31), fromWallet, utils.hexZeroPad(valid, 4)])
         const hash = utils.keccak256(calldata)
@@ -266,18 +288,24 @@ export class OrderService {
         if (tokenInAmount.isZero() || tokenInAmount.gt(MAX_UINT256)) {
             throw new Error('decodeOrder: tokenInAmount error')
         }
-        let tradeType = ''
-        if (this.isUSD(tokenInAddr, chainInfo.rpc.chainId) && this.isETH(tokenOutAddr,chainInfo.rpc.chainId)) {
-            tradeType = 'usd_eth'
-        } else if (this.isETH(tokenInAddr,chainInfo.rpc.chainId) && this.isUSD(tokenOutAddr,chainInfo.rpc.chainId)) {
-            tradeType = 'eth_usd'
-        } else if (this.isUSD(tokenInAddr,chainInfo.rpc.chainId) && this.isERC20(tokenOutAddr,chainInfo.rpc.chainId)) {
-            tradeType = 'usd_erc20'
-        } else if (this.isERC20(tokenInAddr,chainInfo.rpc.chainId) && this.isUSD(tokenOutAddr,chainInfo.rpc.chainId)) {
-            tradeType = 'erc20_usd'
-        } else {
-            throw new Error('Unsupported trading type')
-        }
+        
+        this.logger.log(`decodeOrder: tokenInAddr:${tokenInAddr} tokenOutAddr:${tokenOutAddr}`)
+
+        const isUSD = this.isUSD(tokenInAddr, chainInfo.rpc.chainId);
+
+        const isETH = this.isETH(tokenInAddr, chainInfo.rpc.chainId);
+        const isERC20 = this.isERC20(tokenInAddr, chainInfo.rpc.chainId);
+        
+        const tradeTypes = {
+            'usd_eth': isUSD && this.isETH(tokenOutAddr, chainInfo.rpc.chainId),
+            'eth_usd': isETH && this.isUSD(tokenOutAddr, chainInfo.rpc.chainId),
+            'usd_erc20': isUSD && this.isERC20(tokenOutAddr, chainInfo.rpc.chainId),
+            'erc20_usd': isERC20 && this.isUSD(tokenOutAddr, chainInfo.rpc.chainId),
+        };
+
+        const tradeType = Object.keys(tradeTypes).find(key => tradeTypes[key]);
+
+        this.logger.log(`tradeType:${tradeType}`)
 
         return { tokenOutAmount, tokenOutAddr, tokenInAddr, tokenInAmount, tradeType }
     }
@@ -297,15 +325,32 @@ export class OrderService {
         return tokenAddr === chainInfo.NATIVE_ETH_ADDRESS
     }
 
-    private  isERC20(tokenAddr,chainId) {
-        if (this.isUSD(tokenAddr,chainId)) {
-            return false
-        }
-        if (this.isETH(tokenAddr,chainId)) {
-            return false
-        }
-        return true
+    private isERC20(tokenAddr, chainId) {
+        return !this.isUSD(tokenAddr, chainId) && !this.isETH(tokenAddr, chainId);
+
     }
+
+    private async getTokenInfo(tokenAddr, chainId) {
+        const chainInfo = this.chainService.getChainInfoByChainId(chainId);
+
+        let info: any = {}
+        if (tokenAddr === chainInfo.NATIVE_ETH_ADDRESS) {
+            info.name = 'Native ETH'
+            info.symbol = 'ETH'
+            info.decimals = 18
+        } else {
+            const provider = this.ethereumService.getProvider(chainId);
+            const ERC20 = new ethers.Contract(tokenAddr, ERC20ABI.abi, provider);
+            let token = ERC20.attach(tokenAddr)
+            info.name = await token.name()
+            info.symbol = await token.symbol()
+            info.decimals = await token.decimals()
+        }
+        this.logger.log(`getTokenInfo:${JSON.stringify(info)}`);
+
+        return info
+    }
+
 
 
 

@@ -77,7 +77,7 @@ export class ChainIdService {
                 USDTAddr: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
                 DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
             },
-            SubBundlerAddr: '0xa635fD1c2e67d2e6551b3037699DF2AB5B8Dba09' //fork mainnet to local
+            SubBundlerAddr: '0x31336bc2C8d74D2bB7936542fE64C287C0a8109A' //fork mainnet to local
         },
         137: {
             rpc: {

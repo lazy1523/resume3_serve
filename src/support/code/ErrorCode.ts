@@ -1,4 +1,5 @@
 export class ErrorCode {
+  
     static BAD_REQUEST = { code: 400, msg: 'Bad Request' };
     static UNAUTHORIZED = { code: 401, msg: 'Unauthorized' };
     static FORBIDDEN = { code: 403, msg: 'Forbidden' };
@@ -20,4 +21,11 @@ export class ErrorCode {
     static ERC20_Error = { code: -1014, msg: 'This is not a normal ERC20 contract' };
     static SIGNATURE_ERROR = { code: -1015, msg: 'signature error' };
     static ADDRESS_ZERO_ERROR={code:-1016,msg:'address zero error'}
+    static CONNECT_CONTRACT_WALLET_ERROR = { code: -1017, msg: 'Connect contract wallet error' };
+    static SUBMIT_ATOM_SIGN_ERROR= { code: -1018, msg: 'SubmitAtomSign not support' };
+    static ORDER_NOT_FOUND= { code: -1019, msg: 'Order not found' };
+    
+    static SIGNATURE_VERIFICATION_FAILED = { code: -1020, msg: 'Signature verification failed' };
+    
+  
 }

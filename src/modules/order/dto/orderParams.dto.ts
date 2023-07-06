@@ -13,7 +13,7 @@ export class OrderParamsDTO {
     @IsNotEmpty()
     @IsString()
     @IsEthereumAddress()
-    @ApiProperty({example:'0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'})
+    @ApiProperty({example:'0xdAC17F958D2ee523a2206206994597C13D831ec7'})
     readonly tokenInAddr: string;
 
     @IsNotEmpty()

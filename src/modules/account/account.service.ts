@@ -54,7 +54,7 @@ export class AccountService {
         const contractFactory = new ethers.ContractFactory(SmartWalletABI.abi, SmartWalletABI.bytecode, signer);
 
         const tx = await contractFactory.deploy(createWalletDTO.owner, chain.SubBundlerAddr);
-        await tx.deployTransaction.wait()
+        // await tx.address;
 
         this.logger.log(`createWallet deploy to: ${JSON.stringify(tx.address)} `);
 
