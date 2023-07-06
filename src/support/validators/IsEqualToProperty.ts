@@ -12,7 +12,6 @@ export function IsEqualToProperty(property: string, validationOptions?: Validati
         validate(value: any, args: ValidationArguments) {
           const [relatedPropertyName] = args.constraints;
           const relatedValue = (args.object as any)[relatedPropertyName];
-          console.log(`relatedValue ${relatedValue},value ${value}`, )
           return value !== relatedValue; 
         },
       },

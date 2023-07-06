@@ -1,4 +1,5 @@
 export class ErrorCode {
+   
   
     static BAD_REQUEST = { code: 400, msg: 'Bad Request' };
     static UNAUTHORIZED = { code: 401, msg: 'Unauthorized' };
@@ -27,5 +28,6 @@ export class ErrorCode {
     
     static SIGNATURE_VERIFICATION_FAILED = { code: -1020, msg: 'Signature verification failed' };
     
+    static CONTRACT_WALLET_NOT_FOUND = { code: -1021, msg: 'Contract wallet not found' };
   
 }

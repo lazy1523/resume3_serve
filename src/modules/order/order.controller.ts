@@ -6,6 +6,7 @@ import { OrderParamsDTO } from './dto/orderParams.dto';
 import { CancelOrderDTO } from './dto/cancelOrder.dto';
 import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
 import { ApiResult } from 'src/support/code/ApiResult';
+import { GetOrdersDTO } from './dto/getOrders.dto';
 
 @ApiTags('Order')
 @Controller({ path: 'order', version: '1' })
@@ -57,7 +58,7 @@ export class OrderController {
    */
   @Post('getOrders')
   @HttpCode(HttpStatus.OK)
-  async getOrders(@Body() getOrdersDTO: CancelOrderDTO): Promise<ApiResult> {
+  async getOrders(@Body() getOrdersDTO: GetOrdersDTO): Promise<ApiResult> {
     const result= await this.orderService.getOrders(getOrdersDTO);
     return ApiResult.SUCCESS(result);
   }

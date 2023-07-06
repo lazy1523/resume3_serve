@@ -6,13 +6,18 @@ import { CreateOrderDTO } from './dto/createOrder.dto';
 import { OrderParamsDTO } from './dto/orderParams.dto';
 import { CancelOrderDTO } from './dto/cancelOrder.dto';
 import { OrderEstimatesDTO } from './dto/orderEstimates.dto';
+import{GetOrdersDTO} from './dto/getOrders.dto'
 import SmartWalletABI from 'src/config/abi/wallet/SmartWallet.json';
 import ERC20ABI from 'src/config/abi/mock/MockERC20.json';
+import IUniswapV3PoolABI from 'src/config/abi/IUniswapV3PoolABI.json';
 import { EthereumService } from 'src/support/blockchain/service/ethereum.service';
 import { ethers, utils, BigNumber } from 'ethers';
 import { ChainIdService } from 'src/support/blockchain/service/chainId.service';
 import { BusinessException } from 'src/support/code/BusinessException';
 import { ErrorCode } from 'src/support/code/ErrorCode';
+import { Account } from 'src/models/account';
+import { FeeAmount, Pool, Route, SwapQuoter, computePoolAddress } from '@uniswap/v3-sdk';
+import { Token, Ether, CurrencyAmount, TradeType } from '@uniswap/sdk-core';
 
 @Injectable()
 export class OrderService {
@@ -22,7 +27,9 @@ export class OrderService {
         @InjectModel('Order')
         private orderModel: Model<Order>,
         private ethereumService: EthereumService,
-        private chainService: ChainIdService
+        private chainService: ChainIdService,
+        private accountModel: Model<Account>,
+
 
     ) { }
 
@@ -128,12 +135,41 @@ export class OrderService {
 
     }
 
-    public async getOrders(getOrdersDTO: CancelOrderDTO): Promise<any> {
-        throw new Error('Method not implemented.');
+    public async getOrders(getOrdersDTO: GetOrdersDTO): Promise<any> {
+        const account=await this.accountModel.findOne({ address: getOrdersDTO.fromWallet });
+        if(!account){
+            BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND)
+        }
+        const provider=this.ethereumService.getProvider(account.chainId);
+        const smartWallet = new ethers.Contract(account.address, SmartWalletABI.abi, provider);
+        let wallet = smartWallet.attach(getOrdersDTO.fromWallet);
+        let owner = await wallet.owner();
+        let verifyOwner = utils.verifyMessage(getOrdersDTO.fromWallet, getOrdersDTO.signature);
+
+        if (owner !== verifyOwner) {
+            BusinessException.throwBusinessException(ErrorCode.SIGNATURE_VERIFICATION_FAILED)
+        }
+
+        const orders=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
+        return orders;
     }
 
     public async getOrderEstimates(orderEstimatesDTO: OrderEstimatesDTO): Promise<any> {
-        throw new Error('Method not implemented.');
+        const tokenInAmount =  BigNumber.from(orderEstimatesDTO.tokenInAmount)
+        const tokenOutAmount =  BigNumber.from(orderEstimatesDTO.tokenOutAmount)
+        let data;
+        try {
+            data = await this.quote(orderEstimatesDTO.tokenInAddr, tokenInAmount, orderEstimatesDTO.tokenOutAddr, tokenOutAmount,orderEstimatesDTO.chainId)
+            data.amount = data.amount.toString();
+            data.amountToUser =data.amountToUser.toString();
+            data.status = 0
+    
+        } catch (error) {
+            console.log(error)
+            data = { error: error.toString() }
+            data.status = 1
+        }
+        return data;
     }
 
     private async encodeOrder(orderParams: OrderParamsDTO, valid) {
@@ -351,9 +387,159 @@ export class OrderService {
         return info
     }
 
+    private async quote(tokenInAddr, tokenInAmount, tokenOutAddr, tokenOutAmount,chainId) {
+        const chainInfo = this.chainService.getChainInfoByChainId(chainId);
+        const provider = this.ethereumService.getProvider(chainId);
+        const Maker_Fee = 20 
+       let amount, amountToUser
+       if (tokenInAmount.isZero()) {
+           amount = await this.quoteTokenIn(tokenInAddr, tokenOutAddr, tokenOutAmount,provider,chainInfo)
+           
+           amountToUser = amount.mul(BigNumber.from(10000)).div(BigNumber.from(10000 - Maker_Fee))
+       } else {
+           amount = await this.quoteTokenOut(tokenInAddr, tokenInAmount, tokenOutAddr,provider,chainInfo)
+           
+           amountToUser = amount.mul(BigNumber.from(10000 - Maker_Fee)).div(BigNumber.from(10000))
+       }
+       return { amount, amountToUser }
+   }
 
 
+    private async quoteTokenIn(tokenInAddr, tokenOutAddr, tokenOutAmount,provider:ethers.providers.Provider,chainInfo) {
+    let swapRoute = await this.getSwapRoute(tokenInAddr, tokenOutAddr,chainInfo)
 
+    let quoteCallParameters = SwapQuoter.quoteCallParameters(
+        swapRoute,
+        CurrencyAmount.fromRawAmount(
+            swapRoute.output,
+            tokenOutAmount
+        ),
+        TradeType.EXACT_OUTPUT,
+        {
+            useQuoterV2: true,
+        }
+    )
+
+    let quoteCallReturnData = await provider.call({
+        to: chainInfo.QuoterAddr,
+        data: quoteCallParameters.calldata,
+    })
+
+    return utils.defaultAbiCoder.decode(['uint256'], quoteCallReturnData)[0]
+}
+
+    private async  quoteTokenOut(tokenInAddr, tokenInAmount, tokenOutAddr,provider:ethers.providers.Provider,chainInfo) {
+    let swapRoute = await this.getSwapRoute(tokenInAddr, tokenOutAddr,chainInfo)
+    console.log(`quoteTokenOut->[${swapRoute}]`,swapRoute)
+    let quoteCallParameters = SwapQuoter.quoteCallParameters(
+        swapRoute,
+        CurrencyAmount.fromRawAmount(
+            swapRoute.input,
+            tokenInAmount
+        ),
+        TradeType.EXACT_INPUT,
+        {
+            useQuoterV2: true,
+        }
+    )
+
+    let quoteCallReturnData = await provider.call({
+        to: chainInfo.QuoterAddr,
+        data: quoteCallParameters.calldata,
+    })
+
+    return utils.defaultAbiCoder.decode(['uint256'], quoteCallReturnData)[0]
+}
+   
+
+
+private async  getSwapRoute(tokenInAddr, tokenOutAddr,chainInfo) {
+    let poolInfo = await this.getPoolInfo(tokenInAddr, tokenOutAddr,chainInfo)
+    console.log(`getSwapRoute ->【${poolInfo}】`,)
+    
+    let pool = new Pool(
+        poolInfo.inToken.isNative ? chainInfo.WETH_TOKEN : poolInfo.inToken,
+        poolInfo.outToken.isNative ? chainInfo.WETH_TOKEN : poolInfo.outToken,
+        poolInfo.fee,
+        poolInfo.sqrtPriceX96.toString(),
+        poolInfo.liquidity.toString(),
+        poolInfo.tick
+    )
+
+    // console.log('[quote][getSwapRoute] pool:%o  inToken:%o  outToken:%o', pool, inToken, outToken)
+
+    return new Route([pool], poolInfo.inToken, poolInfo.outToken)
+}
+
+private async getPoolInfo(tokenInAddr, tokenOutAddr,chainInfo) {
+    const provider = this.ethereumService.getProvider(chainInfo.chainId);
+    
+    let inToken
+    if (tokenInAddr === chainInfo.NATIVE_ETH_ADDRESS) {
+        inToken = chainInfo.NATIVE_ETH
+    } else {
+        let tokenInContract = new ethers.Contract(tokenInAddr, ERC20ABI.abi, provider)
+        inToken = new Token(
+            chainInfo.rpc.chainId,
+            tokenInAddr,
+            await tokenInContract.decimals(),
+            await tokenInContract.symbol(),
+            await tokenInContract.name()
+        )
+    }
+
+    let outToken
+    if (tokenOutAddr === chainInfo.NATIVE_ETH_ADDRESS) {
+        outToken = chainInfo.NATIVE_ETH
+    } else {
+        let tokenOutContract = new ethers.Contract(tokenOutAddr, ERC20ABI.abi, provider)
+        outToken = new Token(
+            chainInfo.rpc.chainId,
+            tokenOutAddr,
+            await tokenOutContract.decimals(),
+            await tokenOutContract.symbol(),
+            await tokenOutContract.name()
+        )
+
+    }
+    console.log("sortsBefore1:->",chainInfo.NATIVE_ETH)
+    console.log("sortsBefore2:->",chainInfo.WETH_TOKEN)
+    let poolAddress = computePoolAddress({
+        factoryAddress: chainInfo.PoolFactoryAddr,
+        tokenA: inToken.isNative ? chainInfo.WETH_TOKEN : inToken,
+        tokenB: outToken.isNative ? chainInfo.WETH_TOKEN : outToken,
+        fee: FeeAmount.LOW,
+    })
+
+    let poolContract = new ethers.Contract(
+        poolAddress,
+        IUniswapV3PoolABI.abi,
+        provider
+    )
+
+    let [token0, token1, fee, tickSpacing, liquidity, slot0] =
+        await Promise.all([
+            poolContract.token0(),
+            poolContract.token1(),
+            poolContract.fee(),
+            poolContract.tickSpacing(),
+            poolContract.liquidity(),
+            poolContract.slot0(),
+        ])
+
+    return {
+        poolAddress,
+        token0,
+        token1,
+        fee,
+        tickSpacing,
+        liquidity,
+        sqrtPriceX96: slot0[0],
+        tick: slot0[1],
+        inToken,
+        outToken
+    }
+}
 
 
 
