@@ -10,9 +10,9 @@ import{GetOrdersDTO} from './dto/getOrders.dto'
 import SmartWalletABI from 'src/config/abi/wallet/SmartWallet.json';
 import ERC20ABI from 'src/config/abi/mock/MockERC20.json';
 import IUniswapV3PoolABI from 'src/config/abi/IUniswapV3PoolABI.json';
-import { EthereumService } from 'src/support/blockchain/service/ethereum.service';
+import { EthereumService } from 'src/support/blockchain/ethereum.service';
 import { ethers, utils, BigNumber } from 'ethers';
-import { ChainIdService } from 'src/support/blockchain/service/chainId.service';
+import { ChainIdService } from 'src/support/blockchain/chainId.service';
 import { BusinessException } from 'src/support/code/BusinessException';
 import { ErrorCode } from 'src/support/code/ErrorCode';
 import { Account } from 'src/models/account';

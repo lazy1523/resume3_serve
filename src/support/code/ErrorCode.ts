@@ -1,4 +1,9 @@
 export class ErrorCode {
+    static BAD_REQUEST = { code: 400, msg: 'Bad Request' };
+    static UNAUTHORIZED = { code: 401, msg: 'Unauthorized' };
+    static FORBIDDEN = { code: 403, msg: 'Forbidden' };
+    static NOT_FOUND = { code: 404, msg: 'Not Found' };
+    static SERVER_ERROR = { code: 500, msg: 'Server Error' };
     static INVALID_OWNER_ADDRESS = { code: -1001, msg: 'Invalid owner address' };
     static CREATE_WALLET_ERROR = { code: -1002, msg: 'Create wallet error' };
     static GET_BALANCE_ERROR = { code: -1003, msg: 'Get balance error' };

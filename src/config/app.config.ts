@@ -9,5 +9,6 @@ export default registerAs('app', () => ({
     op_rpc_url: process.env.OP_RPC,
     local_rpc_url: process.env.LOCAL_RPC,
     goerli_rpc_url: process.env.GOERLI_RPC,
-    v2_test_pk: process.env.V2_TEST_PK
+    v2_test_pk: process.env.V2_TEST_PK,
+    resend_key:process.env.RESEND_KEY
   }));

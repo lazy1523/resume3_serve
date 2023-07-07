@@ -3,9 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import appConfig from './config/app.config';
 import { ConfigService } from '@nestjs/config';
-import { OrderModule } from './modules/order/order.module';
 import { BusinessModule } from './modules/business.module';
-import { BlockchainModule } from './support/blockchain/blockchain.module';
+import { SupportModule } from './support/support.module';
 
 @Module({
   imports: [
@@ -18,7 +17,7 @@ import { BlockchainModule } from './support/blockchain/blockchain.module';
       inject: [ConfigService],
     }),
     BusinessModule,
-    BlockchainModule
+    SupportModule
   ],
   controllers: [],
   providers: [],

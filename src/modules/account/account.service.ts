@@ -6,22 +6,25 @@ import { GetBalanceDTO } from './dto/getBalance.dto';
 import { CreateWalletDTO } from './dto/createWallet.dto';
 import { CreateTransferDTO } from './dto/createTransfer.dto';
 import { ExecuteTransferDTO } from './dto/executeTransfer.dto';
-import { EthereumService } from 'src/support/blockchain/service/ethereum.service';
+import { EthereumService } from 'src/support/blockchain/ethereum.service';
 import { ethers, utils } from 'ethers';
 import { ConfigService } from '@nestjs/config';
 
 import SmartWalletABI from 'src/config/abi/wallet/SmartWallet.json';
 import Erc20ABI from 'src/config/abi/mock/MockERC20.json';
 import SubBundlerABI from 'src/config/abi/wallet/SubBundler.json';
-import { ChainIdService } from 'src/support/blockchain/service/chainId.service';
+import { ChainIdService } from 'src/support/blockchain/chainId.service';
 import { Transfer } from 'src/models/transfer';
 import { GasFeeCalculatorDTO } from './dto/gasFeeCalculator.dto';
 import { BusinessException } from 'src/support/code/BusinessException';
 import { ErrorCode } from 'src/support/code/ErrorCode';
+import { AddEmailDTO } from './dto/addEmail.dto';
+import { ResendService } from 'src/support/email/resend.service';
 
 
 @Injectable()
 export class AccountService {
+ 
 
 
 
@@ -34,7 +37,8 @@ export class AccountService {
         private transferModel: Model<Transfer>,
         private ethereumService: EthereumService,
         private configService: ConfigService,
-        private chainService: ChainIdService
+        private chainService: ChainIdService,
+        private emailService: ResendService
     ) { }
 
 
@@ -188,6 +192,32 @@ export class AccountService {
             gasValue: utils.parseUnits("0.1", 18).toString()
         }]
         return data;
+
+    }
+
+    /**
+     * 设置用户的邮件地址
+     * @param addEmailDTO 
+     */
+    public async setAccountEmail(addEmailDTO: AddEmailDTO):Promise<Account> {
+        const resultAccount = await this.accountModel.findOne({address:addEmailDTO.formWallet});
+        if(!resultAccount){
+            BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND);
+        }
+
+        await this.accountModel.updateOne(
+            { address: addEmailDTO.formWallet },
+            { $set: { email: addEmailDTO.email } },
+        );
+
+        // 发送欢迎邮件
+        try{
+            await this.emailService.sendWelcomeEmail(addEmailDTO.email);
+        }catch(e){
+            this.logger.error(`sendWelcomeEmail error: ${e}`);
+        }
+        
+        return resultAccount;
 
     }
 
