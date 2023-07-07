@@ -54,6 +54,7 @@ export class ChainIdService {
             QuoterAddr: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e',
             SwapRouterAddr: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
             WETHAddr: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+            NATIVE_ETH_ADDRESS: '0x0000000000000000000000000000000000000000',
             USDAddrs: {
                 USDCAddr: '0x07865c6e87b9f70255377e024ace6630c1eaa37f',
                 DAI: '0x11fe4b6ae13d2a6055c8d9cf65c55bac32b5d844'

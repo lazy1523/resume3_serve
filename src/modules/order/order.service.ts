@@ -48,7 +48,7 @@ export class OrderService {
         this.logger.log(`createOrder: ${JSON.stringify(createOrder)}`);
         const { rpc, calls, sign }: any = createOrder.json
         const provider = this.ethereumService.getProvider(rpc.chainId);
-        this.logger.log(`provider: ${JSON.stringify(provider)}`);
+        this.logger.log(`rpc.chainId: ${JSON.stringify(rpc.chainId)}`);
         const chainInfo = this.chainService.getChainInfoByChainId(rpc.chainId);
         let valid, owner;
 
@@ -368,8 +368,9 @@ export class OrderService {
     }
 
     private async getTokenInfo(tokenAddr, chainId) {
-        const chainInfo = this.chainService.getChainInfoByChainId(chainId);
 
+        const chainInfo = this.chainService.getChainInfoByChainId(chainId);
+        this.logger.log(`${chainId} chainInfo.NATIVE_ETH_ADDRESS:${chainInfo.NATIVE_ETH_ADDRESS}`)
         let info: any = {}
         if (tokenAddr === chainInfo.NATIVE_ETH_ADDRESS) {
             info.name = 'Native ETH'
@@ -377,13 +378,11 @@ export class OrderService {
             info.decimals = 18
         } else {
             const provider = this.ethereumService.getProvider(chainId);
-            const ERC20 = new ethers.Contract(tokenAddr, ERC20ABI.abi, provider);
-            let token = ERC20.attach(tokenAddr)
+            const token = new ethers.Contract(tokenAddr, ERC20ABI.abi, provider);
             info.name = await token.name()
             info.symbol = await token.symbol()
             info.decimals = await token.decimals()
         }
-        this.logger.log(`getTokenInfo:${JSON.stringify(info)}`);
 
         return info
     }
