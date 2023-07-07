@@ -28,6 +28,7 @@ export class OrderService {
         private orderModel: Model<Order>,
         private ethereumService: EthereumService,
         private chainService: ChainIdService,
+        @InjectModel('Account')
         private accountModel: Model<Account>,
 
 
