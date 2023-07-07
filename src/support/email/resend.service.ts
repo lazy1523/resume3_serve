@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Resend } from "resend";
 import ZkSafeWelcomeEmail from "./template/welcome";
-import TwoFactorAuth from "./template/TwoFactorAuth";
-import ExcessWarning from "./template/ExcessWarning";
+import TwoFactorAuth from "./template/twoFactorAuth";
+import ExcessWarning from "./template/excessWarning";
 @Injectable()
 export class ResendService {
     private resend: Resend;
