@@ -40,6 +40,7 @@ export class AccountService {
         private accountModel: Model<Account>,
         @InjectModel('Transfer')
         private transferModel: Model<Transfer>,
+        
         private ethereumService: EthereumService,
         private configService: ConfigService,
         private chainService: ChainIdService,

@@ -1,21 +1,15 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema } from 'mongoose';
 
-export type SecurityCodeDocument = SecurityCode & Document;
+export const SecurityCodeSchema = new Schema({
+  email: { type: String, required: true },
+  owner: { type: String, required: true },
+  code: { type: String, required: true },
+  expiresAt: { type: Date, default: Date.now, expires: '10m' },
+});
 
-@Schema()
-export class SecurityCode {
-    @Prop({ required: true })
-    email: string;
-
-    @Prop({ required: true })
-    owner: string;
-
-    @Prop({ required: true })
-    code: string;
-
-    @Prop({ type: Date, default: Date.now, expires: '10m' })
-    expiresAt: Date;
+export interface SecurityCode extends Document {
+  readonly email: string;
+  readonly owner: string;
+  readonly code: string;
+  readonly expiresAt: Date;
 }
-
-export const SecurityCodeSchema = SchemaFactory.createForClass(SecurityCode);
