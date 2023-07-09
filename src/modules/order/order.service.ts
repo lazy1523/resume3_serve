@@ -103,6 +103,7 @@ export class OrderService {
                 const newOrder = new this.orderModel(order);
                 const result = await newOrder.save();
 
+          
                 return result;
 
             } else {
@@ -149,6 +150,33 @@ export class OrderService {
         let wallet = smartWallet.attach(getOrdersDTO.fromWallet);
         let owner = await wallet.owner();
         let verifyOwner = utils.verifyMessage(getOrdersDTO.fromWallet, getOrdersDTO.signature);
+
+        if (owner !== verifyOwner) {
+            BusinessException.throwBusinessException(ErrorCode.SIGNATURE_VERIFICATION_FAILED)
+        }
+
+        const orders:any=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
+        
+        for (let order of orders) {
+            order.id=order._id.toHexString();
+            order.tokenInInfo.type=this.chainService.isStable(order.tokenInAddr,order.json.rpc.chainId);
+            order.tokenOutInfo.type=this.chainService.isStable(order.tokenOutAddr,order.json.rpc.chainId);
+        }
+
+        return orders;
+    }
+
+    public async getOrdersByObject(getOrdersDTO: GetOrdersDTO): Promise<any> {
+        const account=await this.accountModel.findOne({ address: getOrdersDTO.fromWallet });
+        if(!account){
+            BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND)
+        }
+        
+        const provider=this.ethereumService.getProvider(account.chainId);
+        const smartWallet = new ethers.Contract(account.address, SmartWalletABI.abi, provider);
+        let wallet = smartWallet.attach(getOrdersDTO.fromWallet);
+        let owner = await wallet.owner();
+        let verifyOwner = utils.verifyMessage(getOrdersDTO.fromWallet, getOrdersDTO.signature);
         let result = []
 
         if (owner !== verifyOwner) {
@@ -156,7 +184,9 @@ export class OrderService {
         }
 
         const orders:any=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
+        
         for (let order of orders) {
+            order.id=order._id.toHexString();
             result.push({
                 tokenIn:{
 					address:order.tokenInAddr,
@@ -178,9 +208,9 @@ export class OrderService {
             })
         }
 
-      
         return result;
     }
+
 
     public async getOrderEstimates(orderEstimatesDTO: OrderEstimatesDTO): Promise<any> {
         const tokenInAmount =  BigNumber.from(orderEstimatesDTO.tokenInAmount)
