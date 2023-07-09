@@ -179,7 +179,7 @@ export class OrderService {
         }
 
       
-        return orders;
+        return result;
     }
 
     public async getOrderEstimates(orderEstimatesDTO: OrderEstimatesDTO): Promise<any> {
