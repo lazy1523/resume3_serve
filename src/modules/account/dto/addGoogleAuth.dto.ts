@@ -6,4 +6,9 @@ export class AddGoogleAuthDTO{
     @IsNotEmpty()
     email: string;
 
+    @ApiProperty({example:"0x1234567890123456789012345678901234567890"})
+    @IsNotEmpty()
+    @IsEthereumAddress()
+    owner: string;
+
 }

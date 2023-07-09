@@ -26,6 +26,7 @@ import { SecurityCode } from 'src/models/securityCode';
 import { VerifyEmailCodeDTO } from './dto/verifyEmailCode.dto';
 import { GoogleAuthService } from 'src/support/security/googleAuth.service';
 import { VerifyGoogleAuthDTO } from './dto/verifyGoogleAuth.dto';
+import { GoogleAuth } from 'src/models/googleAuth';
 
 
 @Injectable()
@@ -38,34 +39,49 @@ export class AccountService {
         private accountModel: Model<Account>,
         @InjectModel('Transfer')
         private transferModel: Model<Transfer>,
+        @InjectModel('GoogleAuth')
+        private googleAuthModel: Model<GoogleAuth>,
 
-        private ethereumService: EthereumService,
-        private configService: ConfigService,
-        private chainService: ChainIdService,
-        private emailService: ResendService,
-        private securityCodeService: SecurityCodeService,
+        private readonly ethereumService: EthereumService,
+        private readonly configService: ConfigService,
+        private readonly chainService: ChainIdService,
+        private readonly emailService: ResendService,
+        private readonly securityCodeService: SecurityCodeService,
         private readonly googleAuthService: GoogleAuthService
     ) { }
 
 
     public async setGoogleAuth(addGoogleAuthDTO: AddGoogleAuthDTO) {
 
-        const account = await this.accountModel.findOne({ email: addGoogleAuthDTO.email }).exec();
+        const account = await this.accountModel.findOne({ email: addGoogleAuthDTO.email,owner:addGoogleAuthDTO.owner }).exec();
         if(!account) {
             BusinessException.throwBusinessException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
 
         const secret = this.googleAuthService.generateSecret();
+        const googleAuth= new this.googleAuthModel({ 
+            email: addGoogleAuthDTO.email,
+            owner:addGoogleAuthDTO.owner, 
+            secret: secret });
+            
+        await googleAuth.save();
+
         return this.googleAuthService.generateQRCode(secret);
     }
 
+    /**
+     * verifyGoogleAuth
+     * @param verifyGoogleAuth 
+     * @returns boolean 
+     */
     public async verifyGoogleAuth(verifyGoogleAuth: VerifyGoogleAuthDTO) {
         const account = await this.accountModel.findOne({ email: verifyGoogleAuth.email }).exec();
         if(!account) {
             BusinessException.throwBusinessException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
-
-        this.googleAuthService.verifyToken("123123", verifyGoogleAuth.token);
+        const googleAuth=await this.googleAuthModel.findOne({ email: verifyGoogleAuth.email }).exec();
+        
+        return this.googleAuthService.verifyToken(googleAuth.secret, verifyGoogleAuth.token);
     }
 
 
