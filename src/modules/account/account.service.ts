@@ -24,14 +24,12 @@ import { AddGoogleAuthDTO } from './dto/addGoogleAuth.dto';
 import { SecurityCodeService } from 'src/support/security/securityCode.service';
 import { SecurityCode } from 'src/models/securityCode';
 import { VerifyEmailCodeDTO } from './dto/verifyEmailCode.dto';
+import { GoogleAuthService } from 'src/support/security/googleAuth.service';
+import { VerifyGoogleAuthDTO } from './dto/verifyGoogleAuth.dto';
 
 
 @Injectable()
 export class AccountService {
- 
- 
-
-
 
     private logger: Logger = new Logger(AccountService.name);
 
@@ -40,18 +38,36 @@ export class AccountService {
         private accountModel: Model<Account>,
         @InjectModel('Transfer')
         private transferModel: Model<Transfer>,
-        
+
         private ethereumService: EthereumService,
         private configService: ConfigService,
         private chainService: ChainIdService,
         private emailService: ResendService,
-        private securityCodeService: SecurityCodeService
+        private securityCodeService: SecurityCodeService,
+        private readonly googleAuthService: GoogleAuthService
     ) { }
 
 
     public async setGoogleAuth(addGoogleAuthDTO: AddGoogleAuthDTO) {
-        throw new Error("Method not implemented.");
+
+        const account = await this.accountModel.findOne({ email: addGoogleAuthDTO.email }).exec();
+        if(!account) {
+            BusinessException.throwBusinessException(ErrorCode.ACCOUNT_NOT_EXIST);
+        }
+
+        const secret = this.googleAuthService.generateSecret();
+        return this.googleAuthService.generateQRCode(secret);
     }
+
+    public async verifyGoogleAuth(verifyGoogleAuth: VerifyGoogleAuthDTO) {
+        const account = await this.accountModel.findOne({ email: verifyGoogleAuth.email }).exec();
+        if(!account) {
+            BusinessException.throwBusinessException(ErrorCode.ACCOUNT_NOT_EXIST);
+        }
+
+        this.googleAuthService.verifyToken("123123", verifyGoogleAuth.token);
+    }
+
 
     /**
      * 
@@ -109,22 +125,22 @@ export class AccountService {
                 })
             } else {
                 try {
-                const contract = new ethers.Contract(token, Erc20ABI.abi, provider);
-                const balance = await contract.balanceOf(getBalanceDTO.wallet);
-                const erc20_name = await contract.name();
-                const decimals = await contract.decimals();
-                const symbol = await contract.symbol();
-                data.push({
-                    address: token,
-                    balance: balance.toString(),
-                    name: erc20_name,
-                    symbol: symbol,
-                    decimals: decimals
-                })
-            } catch (e) {
-                this.logger.error(`getBalance error: ${e}`);
-                BusinessException.throwBusinessException(ErrorCode.ERC20_Error)
-            }
+                    const contract = new ethers.Contract(token, Erc20ABI.abi, provider);
+                    const balance = await contract.balanceOf(getBalanceDTO.wallet);
+                    const erc20_name = await contract.name();
+                    const decimals = await contract.decimals();
+                    const symbol = await contract.symbol();
+                    data.push({
+                        address: token,
+                        balance: balance.toString(),
+                        name: erc20_name,
+                        symbol: symbol,
+                        decimals: decimals
+                    })
+                } catch (e) {
+                    this.logger.error(`getBalance error: ${e}`);
+                    BusinessException.throwBusinessException(ErrorCode.ERC20_Error)
+                }
             }
         }
         return data;
@@ -139,6 +155,11 @@ export class AccountService {
         return this.transferEncode(createTransferDTO);
     }
 
+    /**
+     * The json that executes the transfer
+     * @param executeTransferDTO 
+     * @returns 
+     */
     public async executeTransfer(executeTransferDTO: ExecuteTransferDTO): Promise<any> {
         this.logger.log(`executeTransferDTO: ${JSON.stringify(executeTransferDTO)}`)
 
@@ -156,8 +177,6 @@ export class AccountService {
         const tx = await subBundler.executeOp(toArr, valueArr, dataArr);
         await tx.wait();
 
-
-        // 保存用户的转账记录 
         const now = new Date();
         const transfer = {
             chainId: executeTransferDTO.rpc.chainId,
@@ -176,8 +195,12 @@ export class AccountService {
         return newTransfer;
     }
 
+    /**
+     * Calculate the gas tip for executing the transfer
+     * @param getGasFeeCalculatorDTO 
+     * @returns 
+     */
     public async getGasFeeCalculator(getGasFeeCalculatorDTO: GasFeeCalculatorDTO): Promise<any> {
-
         const chainInfo = this.chainService.getChainInfoByChainId(getGasFeeCalculatorDTO.chainId);
         const data = [{
             chainId: chainInfo.rpc.chainId,
@@ -206,29 +229,33 @@ export class AccountService {
     }
 
     /**
-     * 设置用户的邮件地址
+     * Set user's email address
      * @param addEmailDTO 
      */
-    public async setAccountEmail(addEmailDTO: AddEmailDTO):Promise<Account> {
-        const resultAccount = await this.accountModel.findOne({address:addEmailDTO.formWallet});
-        if(!resultAccount){
+    public async setAccountEmail(addEmailDTO: AddEmailDTO): Promise<Account> {
+        const resultAccount = await this.accountModel.findOne({ address: addEmailDTO.formWallet });
+        if (!resultAccount) {
             BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND);
         }
-        try{
-            const securityCode: SecurityCode= await this.securityCodeService.createSecurityCode({email:addEmailDTO.email,owner:resultAccount.owner})
-            await this.emailService.sendWelcomeEmail(addEmailDTO.email,securityCode.code);
-        }catch(e){
+        try {
+            const securityCode: SecurityCode = await this.securityCodeService.createSecurityCode({ email: addEmailDTO.email, owner: resultAccount.owner })
+            await this.emailService.sendWelcomeEmail(addEmailDTO.email, securityCode.code);
+        } catch (e) {
             this.logger.error(`sendWelcomeEmail error: ${e}`);
         }
-        
+
         return resultAccount;
     }
 
-    // 验证用户邮件地址的验证码
-    public async verifyEmailCode(verifyEmailCodeDTO: VerifyEmailCodeDTO):Promise<Boolean> {
-         const isVerified= await this.securityCodeService.verifySecurityCode(verifyEmailCodeDTO);
-        
-        if(!isVerified){
+    /**
+     * Captcha to verify user email address
+     * @param verifyEmailCodeDTO 
+     * @returns 
+     */
+    public async verifyEmailCode(verifyEmailCodeDTO: VerifyEmailCodeDTO): Promise<Boolean> {
+        const isVerified = await this.securityCodeService.verifySecurityCode(verifyEmailCodeDTO);
+
+        if (!isVerified) {
             BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND);
         }
 

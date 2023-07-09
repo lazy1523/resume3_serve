@@ -15,23 +15,29 @@ export class SecurityCodeService {
 
     public async createSecurityCode({ email, owner }): Promise<any> {
         const code = this.generateSecurityCode();
-        // const newSecurityCode = new this.securityCodeModel({ email, owner, code });
-        // return newSecurityCode.save();
+        const newSecurityCode = new this.securityCodeModel({ email, owner, code });
+        return newSecurityCode.save();
     }
 
     public async verifySecurityCode(verifyEmailCodeDTO: VerifyEmailCodeDTO): Promise<Boolean> {
-        throw new Error('Method not implemented.');
+        const securityCode = await this.securityCodeModel.findOne({ email: verifyEmailCodeDTO.email, code: verifyEmailCodeDTO.code });
+        if (securityCode) {
+            await securityCode.deleteOne();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public async consumeSecurityCode(code: string): Promise<SecurityCode | null> {
-        // const securityCode = await this.securityCodeModel.findOne({ code });
-        // if (securityCode) {
-        //     await securityCode.deleteOne();
-        //     return securityCode;
-        // } else {
-        //     return null;
-        // }
-        throw new Error('Method not implemented.')
+        const securityCode = await this.securityCodeModel.findOne({ code });
+        if (securityCode) {
+            await securityCode.deleteOne();
+            return securityCode;
+        } else {
+            return null;
+        }
+ 
     }
 
     private generateSecurityCode(): string {

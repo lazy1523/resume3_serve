@@ -23,9 +23,13 @@ export class ErrorCode {
     static CONNECT_CONTRACT_WALLET_ERROR = { code: -1017, msg: 'Connect contract wallet error' };
     static SUBMIT_ATOM_SIGN_ERROR= { code: -1018, msg: 'SubmitAtomSign not support' };
     static ORDER_NOT_FOUND= { code: -1019, msg: 'Order not found' };
+ 
     
     static SIGNATURE_VERIFICATION_FAILED = { code: -1020, msg: 'Signature verification failed' };
     
     static CONTRACT_WALLET_NOT_FOUND = { code: -1021, msg: 'Contract wallet not found' };
+    
+       //ACCOUNT_NOT_EXIST
+    static ACCOUNT_NOT_EXIST = { code: -1022, msg: 'Account not exist' };
   
 }

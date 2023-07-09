@@ -9,6 +9,8 @@ import { GasFeeCalculatorDTO } from "./dto/gasFeeCalculator.dto";
 import { ApiResult } from "src/support/code/ApiResult";
 import { AddEmailDTO } from "./dto/addEmail.dto";
 import { AddGoogleAuthDTO } from "./dto/addGoogleAuth.dto";
+import { VerifyEmailCodeDTO } from "./dto/verifyEmailCode.dto";
+import { VerifyGoogleAuthDTO } from "./dto/verifyGoogleAuth.dto";
 
 @ApiTags('Account')
 @Controller({ path: 'account', version: '1' })
@@ -46,21 +48,35 @@ export class AccountController {
     @Post('getGasFeeCalculator')
     @HttpCode(HttpStatus.OK)
     async getGasFeeCalculator(@Body() getGasFeeCalculatorDTO: GasFeeCalculatorDTO): Promise<ApiResult> {
-        const result= await this.accountService.getGasFeeCalculator(getGasFeeCalculatorDTO);
+        const result = await this.accountService.getGasFeeCalculator(getGasFeeCalculatorDTO);
         return ApiResult.SUCCESS(result);
     }
 
     @Post('setAccountEmail')
     @HttpCode(HttpStatus.OK)
-    async setAccountEmail(addEmailDTO:AddEmailDTO) {
-        const result= await this.accountService.setAccountEmail(addEmailDTO);
+    async setAccountEmail(@Body() addEmailDTO: AddEmailDTO) {
+        const result = await this.accountService.setAccountEmail(addEmailDTO);
         return ApiResult.SUCCESS(result);
     }
-    
+
+    @Post('verifyEmailCode')
+    @HttpCode(HttpStatus.OK)
+    async verifyEmailCode(@Body() verifyEmailCodeDTO: VerifyEmailCodeDTO) {
+        const result = await this.accountService.verifyEmailCode(verifyEmailCodeDTO);
+        return ApiResult.SUCCESS(result);
+    }
+
     @Post('setGoogleAuth')
     @HttpCode(HttpStatus.OK)
-    async setGoogleAuth(@Body() addGoogleAuthDTO:AddGoogleAuthDTO) {
-        const result= await this.accountService.setGoogleAuth(addGoogleAuthDTO);
+    async setGoogleAuth(@Body() addGoogleAuthDTO: AddGoogleAuthDTO) {
+        const result = await this.accountService.setGoogleAuth(addGoogleAuthDTO);
+        return ApiResult.SUCCESS(result);
+    }
+
+    @Post('verifyGoogleAuth')
+    @HttpCode(HttpStatus.OK)
+    async verifyGoogleAuth(@Body() verifyGoogleAuthDTO:VerifyGoogleAuthDTO) {
+        const result = await this.accountService.verifyGoogleAuth(verifyGoogleAuthDTO);
         return ApiResult.SUCCESS(result);
     }
 
