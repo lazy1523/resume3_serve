@@ -139,14 +139,13 @@ export class OrderService {
     }
 
     public async getOrders(getOrdersDTO: GetOrdersDTO): Promise<any> {
-        // const account=await this.accountModel.findOne({ address: getOrdersDTO.fromWallet });
-        // if(!account){
-        //     BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND)
-        // }
-  
-        // 这里应为调试需要，直接写成5 。
-        const provider=this.ethereumService.getProvider(5);
-        const smartWallet = new ethers.Contract(getOrdersDTO.fromWallet, SmartWalletABI.abi, provider);
+        const account=await this.accountModel.findOne({ address: getOrdersDTO.fromWallet });
+        if(!account){
+            BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND)
+        }
+        
+        const provider=this.ethereumService.getProvider(account.chainId);
+        const smartWallet = new ethers.Contract(account.address, SmartWalletABI.abi, provider);
         let wallet = smartWallet.attach(getOrdersDTO.fromWallet);
         let owner = await wallet.owner();
         let verifyOwner = utils.verifyMessage(getOrdersDTO.fromWallet, getOrdersDTO.signature);
