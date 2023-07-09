@@ -1,0 +1,88 @@
+
+/Users/zisu/Documents/zksafe/new_server
+├── Dockerfile
+├── README.md
+├── dist
+|  ├── app.module.d.ts
+|  ├── app.module.js
+|  ├── app.module.js.map
+|  ├── config
+|  |  ├── abi
+|  |  ├── app.config.d.ts
+|  |  ├── app.config.js
+|  |  └── app.config.js.map
+|  ├── main.d.ts
+|  ├── main.js
+|  ├── main.js.map
+|  ├── models
+|  |  ├── account.d.ts
+|  |  ├── account.js
+|  |  ├── account.js.map
+|  |  ├── order.d.ts
+|  |  ├── order.js
+|  |  ├── order.js.map
+|  |  ├── token.d.ts
+|  |  ├── token.js
+|  |  ├── token.js.map
+|  |  ├── transfer.d.ts
+|  |  ├── transfer.js
+|  |  └── transfer.js.map
+|  ├── modules
+|  |  ├── account
+|  |  ├── business.module.d.ts
+|  |  ├── business.module.js
+|  |  ├── business.module.js.map
+|  |  ├── home
+|  |  └── order
+|  ├── support
+|  |  ├── blockchain
+|  |  ├── code
+|  |  ├── email
+|  |  ├── support.module.d.ts
+|  |  ├── support.module.js
+|  |  ├── support.module.js.map
+|  |  └── validators
+|  └── tsconfig.build.tsbuildinfo
+├── env-example
+├── nest-cli.json
+├── package-lock.json
+├── package.json
+├── src
+|  ├── app.module.ts
+|  ├── config
+|  |  ├── abi
+|  |  └── app.config.ts
+|  ├── main.ts
+|  ├── models
+|  |  ├── account.ts
+|  |  ├── order.ts
+|  |  ├── securityCode.ts
+|  |  ├── token.ts
+|  |  └── transfer.ts
+|  ├── modules
+|  |  ├── account
+|  |  ├── business.module.ts
+|  |  ├── home
+|  |  └── order
+|  ├── support
+|  |  ├── blockchain
+|  |  ├── code
+|  |  ├── email
+|  |  ├── security
+|  |  ├── strategies
+|  |  ├── support.module.ts
+|  |  └── validators
+|  └── utils
+├── test
+|  ├── app.e2e-spec.ts
+|  └── jest-e2e.json
+├── tree.txt
+├── tsconfig.build.json
+└── tsconfig.json
+
+directory: 1527 file: 4121
+
+ignored: directory (62)
+
+
+[2K[1G

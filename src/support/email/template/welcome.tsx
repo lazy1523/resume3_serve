@@ -12,15 +12,17 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-interface KoalaWelcomeEmailProps {
+interface ZkSafeWelcomeEmailProps {
   userFirstname: string;
+  code:number;
 }
 
 const baseUrl = 'https://www.zksafe.pro';
 
-const KoalaWelcomeEmail = ({
+const ZksafeWelcomeEmail = ({
   userFirstname = 'Zeno',
-}: KoalaWelcomeEmailProps) => (
+  code=123456,
+}: ZkSafeWelcomeEmailProps) => (
   <Html>
     <Head />
     <Preview>
@@ -39,6 +41,9 @@ const KoalaWelcomeEmail = ({
         <Text style={paragraph}>
           More professional and secure 0gas dex transaction, from ETH Lightning Network
         </Text>
+        <Text style={paragraph}>
+          你的验证码为： {code}
+        </Text>
         <Section style={btnContainer}>
           <Button pX={12} pY={12} style={button} href="https://www.zksafe.pro">
           Trade now
@@ -56,7 +61,7 @@ const KoalaWelcomeEmail = ({
   </Html>
 );
 
-export default KoalaWelcomeEmail;
+export default ZksafeWelcomeEmail;
 
 const main = {
   backgroundColor: '#ffffff',

@@ -20,10 +20,15 @@ import { BusinessException } from 'src/support/code/BusinessException';
 import { ErrorCode } from 'src/support/code/ErrorCode';
 import { AddEmailDTO } from './dto/addEmail.dto';
 import { ResendService } from 'src/support/email/resend.service';
+import { AddGoogleAuthDTO } from './dto/addGoogleAuth.dto';
+import { SecurityCodeService } from 'src/support/security/securityCode.service';
+import { SecurityCode } from 'src/models/securityCode';
+import { VerifyEmailCodeDTO } from './dto/verifyEmailCode.dto';
 
 
 @Injectable()
 export class AccountService {
+ 
  
 
 
@@ -38,9 +43,14 @@ export class AccountService {
         private ethereumService: EthereumService,
         private configService: ConfigService,
         private chainService: ChainIdService,
-        private emailService: ResendService
+        private emailService: ResendService,
+        private securityCodeService: SecurityCodeService
     ) { }
 
+
+    public async setGoogleAuth(addGoogleAuthDTO: AddGoogleAuthDTO) {
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * 
@@ -58,7 +68,6 @@ export class AccountService {
         const contractFactory = new ethers.ContractFactory(SmartWalletABI.abi, SmartWalletABI.bytecode, signer);
 
         const tx = await contractFactory.deploy(createWalletDTO.owner, chain.SubBundlerAddr);
-        // await tx.address;
 
         this.logger.log(`createWallet deploy to: ${JSON.stringify(tx.address)} `);
 
@@ -204,21 +213,30 @@ export class AccountService {
         if(!resultAccount){
             BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND);
         }
-
-        await this.accountModel.updateOne(
-            { address: addEmailDTO.formWallet },
-            { $set: { email: addEmailDTO.email } },
-        );
-
-        // 发送欢迎邮件
         try{
-            await this.emailService.sendWelcomeEmail(addEmailDTO.email);
+            const securityCode: SecurityCode= await this.securityCodeService.createSecurityCode({email:addEmailDTO.email,owner:resultAccount.owner})
+            await this.emailService.sendWelcomeEmail(addEmailDTO.email,securityCode.code);
         }catch(e){
             this.logger.error(`sendWelcomeEmail error: ${e}`);
         }
         
         return resultAccount;
+    }
 
+    // 验证用户邮件地址的验证码
+    public async verifyEmailCode(verifyEmailCodeDTO: VerifyEmailCodeDTO):Promise<Boolean> {
+         const isVerified= await this.securityCodeService.verifySecurityCode(verifyEmailCodeDTO);
+        
+        if(!isVerified){
+            BusinessException.throwBusinessException(ErrorCode.CONTRACT_WALLET_NOT_FOUND);
+        }
+
+        await this.accountModel.updateOne(
+            { address: verifyEmailCodeDTO.formWallet },
+            { $set: { email: verifyEmailCodeDTO.email } },
+        );
+
+        return isVerified;
     }
 
 

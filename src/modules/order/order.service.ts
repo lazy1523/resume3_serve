@@ -26,10 +26,12 @@ export class OrderService {
     constructor(
         @InjectModel('Order')
         private orderModel: Model<Order>,
-        private ethereumService: EthereumService,
-        private chainService: ChainIdService,
         @InjectModel('Account')
         private accountModel: Model<Account>,
+
+        private ethereumService: EthereumService,
+        private chainService: ChainIdService,
+ 
 
 
     ) { }
@@ -97,7 +99,7 @@ export class OrderService {
                 order.fromWallet = sign.fromWallet
                 order.createAt = new Date();
                 order.updateAt = new Date();
-
+  
                 const newOrder = new this.orderModel(order);
                 const result = await newOrder.save();
 
@@ -146,12 +148,36 @@ export class OrderService {
         let wallet = smartWallet.attach(getOrdersDTO.fromWallet);
         let owner = await wallet.owner();
         let verifyOwner = utils.verifyMessage(getOrdersDTO.fromWallet, getOrdersDTO.signature);
+        let result = []
 
         if (owner !== verifyOwner) {
             BusinessException.throwBusinessException(ErrorCode.SIGNATURE_VERIFICATION_FAILED)
         }
 
-        const orders=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
+        const orders:any=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
+        for (let order of orders) {
+            result.push({
+                tokenIn:{
+					address:order.tokenInAddr,
+					amount:order.tokenInAmount.toString(),
+					info:order.tokenInInfo,
+					type:this.chainService.isStable(order.tokenInAddr,order.json.rpc.chainId)
+				},
+				tokenOut:{
+					address:order.tokenOutAddr,
+					amount:order.tokenOutAmount.toString(),
+					info:order.tokenOutInfo,
+					type:this.chainService.isStable(order.tokenOutAddr,order.json.rpc.chainId)
+				},
+				createAt:order.createdAt,
+				updateAt:order.updatedAt,
+				orderId: order.orderId,
+                status: order.status
+
+            })
+        }
+
+      
         return orders;
     }
 
@@ -163,8 +189,7 @@ export class OrderService {
             data = await this.quote(orderEstimatesDTO.tokenInAddr, tokenInAmount, orderEstimatesDTO.tokenOutAddr, tokenOutAmount,orderEstimatesDTO.chainId)
             data.amount = data.amount.toString();
             data.amountToUser =data.amountToUser.toString();
-            data.status = 0
-    
+            data.status = 0;
         } catch (error) {
             console.log(error)
             data = { error: error.toString() }

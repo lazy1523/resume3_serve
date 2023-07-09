@@ -8,6 +8,7 @@ import { ExecuteTransferDTO } from "./dto/executeTransfer.dto";
 import { GasFeeCalculatorDTO } from "./dto/gasFeeCalculator.dto";
 import { ApiResult } from "src/support/code/ApiResult";
 import { AddEmailDTO } from "./dto/addEmail.dto";
+import { AddGoogleAuthDTO } from "./dto/addGoogleAuth.dto";
 
 @ApiTags('Account')
 @Controller({ path: 'account', version: '1' })
@@ -53,6 +54,13 @@ export class AccountController {
     @HttpCode(HttpStatus.OK)
     async setAccountEmail(addEmailDTO:AddEmailDTO) {
         const result= await this.accountService.setAccountEmail(addEmailDTO);
+        return ApiResult.SUCCESS(result);
+    }
+    
+    @Post('setGoogleAuth')
+    @HttpCode(HttpStatus.OK)
+    async setGoogleAuth(@Body() addGoogleAuthDTO:AddGoogleAuthDTO) {
+        const result= await this.accountService.setGoogleAuth(addGoogleAuthDTO);
         return ApiResult.SUCCESS(result);
     }
 

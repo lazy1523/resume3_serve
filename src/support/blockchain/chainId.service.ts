@@ -142,4 +142,17 @@ export class ChainIdService {
     getChainInfoByChainId(chainId: number): ChainInfo | undefined {
         return this.nameToChainInfo[chainId];
     }
+
+    isStable(tokenAddr,chainId:number){
+        let USDAddrs;
+        for(let i in this.nameToChainInfo){
+            if(this.nameToChainInfo[i].rpc.chainId===chainId){
+                USDAddrs=this.nameToChainInfo[i].USDAddrs
+            }
+        }
+        if(USDAddrs.USDCAddr===tokenAddr||USDAddrs.USDTAddr===tokenAddr||USDAddrs.DAI===tokenAddr){
+            return "stable"
+        }
+        return "native"
+    }
 }

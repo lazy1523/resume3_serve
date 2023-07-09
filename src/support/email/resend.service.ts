@@ -15,12 +15,12 @@ export class ResendService {
      * send welcome email
      * @param email 
      */
-    async sendWelcomeEmail(to_email: string) {
+    async sendWelcomeEmail(to_email: string,code) {
         this.resend.sendEmail({
             from: 'ZkSafe<noreply@zksafe.pro>',
             to: to_email,
             subject: 'Welcome to Zksafe ',
-            react: ZkSafeWelcomeEmail({userFirstname:"Zksafe"}),
+            react: ZkSafeWelcomeEmail({userFirstname:"Zksafe",code}),
         })
     }
 

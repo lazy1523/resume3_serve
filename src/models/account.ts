@@ -1,4 +1,4 @@
-import { Document, Schema,Mongoose } from 'mongoose';
+import { Document, Schema, Mongoose } from 'mongoose';
 
 /**
  * 当前模型的问题：
@@ -18,14 +18,25 @@ export const AccountSchema = new Schema({
     email: String,
     chainId: Number,
     createdAt: {
-        type: Date,
-        default: Date.now
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     },
     updatedAt: {
-        type: Date,
-        default: Date.now
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     }
 
+});
+
+
+AccountSchema.pre('save', function (next) {
+    this.updatedAt = Math.floor(Date.now() / 1000);
+    next();
+});
+AccountSchema.pre('findOneAndUpdate', function (next) {
+    const _update: any = this.getUpdate();
+    _update.updatedAt({}, { $set: { updatedAt: Math.floor(Date.now() / 1000) } });
+    next();
 });
 
 
@@ -37,4 +48,4 @@ export interface Account extends Document {
     readonly chainId: number;
     readonly createdAt: Date;
     readonly updatedAt: Date;
-  }
+}
