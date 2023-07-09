@@ -155,13 +155,25 @@ export class OrderService {
             BusinessException.throwBusinessException(ErrorCode.SIGNATURE_VERIFICATION_FAILED)
         }
 
-        const orders:any=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
+        let orders:any=await this.orderModel.find({fromWallet:getOrdersDTO.fromWallet});
         
-        for (let order of orders) {
-            order.id=order._id.toHexString();
-            order.tokenInInfo.type=this.chainService.isStable(order.tokenInAddr,order.json.rpc.chainId);
-            order.tokenOutInfo.type=this.chainService.isStable(order.tokenOutAddr,order.json.rpc.chainId);
-        }
+
+        orders = orders.map(order => {
+            const newOrder = {
+              ...order.toObject(),
+              id: order._id.toHexString(),
+              tokenInInfo: {
+                ...order.tokenInInfo,
+                type:this.chainService.isStable(order.tokenInAddr, order.json.rpc.chainId),
+              },
+              tokenOutInfo: {
+                ...order.tokenOutInfo,
+                type: this.chainService.isStable(order.tokenOutAddr, order.json.rpc.chainId),
+              },
+            };
+            return newOrder;
+          });
+    
 
         return orders;
     }
