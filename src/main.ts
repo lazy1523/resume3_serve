@@ -29,8 +29,8 @@ async function bootstrap() {
 
   
   const config = new DocumentBuilder()
-    .setTitle('zkSafe') 
-    .setDescription('next generation zkSafe')
+    .setTitle('Resumes3 API') 
+    .setDescription('web3 resumes api')
     .setVersion('1.0')
     .build();
 

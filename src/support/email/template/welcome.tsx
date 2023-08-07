@@ -42,7 +42,7 @@ const ZksafeWelcomeEmail = ({
           More professional and secure 0gas dex transaction, from ETH Lightning Network
         </Text>
         <Text style={paragraph}>
-          你的验证码为： {code}
+          Code： {code}
         </Text>
         <Section style={btnContainer}>
           <Button pX={12} pY={12} style={button} href="https://www.zksafe.pro">

@@ -6,11 +6,14 @@ import ExcessWarning from "./template/excessWarning";
 import { ConfigService } from "@nestjs/config";
 @Injectable()
 export class ResendService {
+
     private resend: Resend;
+
     constructor(private configService: ConfigService) {
         const resend_key= this.configService.get<string>('app.resend_key');
         this.resend = new Resend(resend_key);
     }
+
     /**
      * send welcome email
      * @param email 
@@ -25,7 +28,7 @@ export class ResendService {
     }
 
     /**
-     * 二次验证
+     * 2FA
      * @param to_email 
      * @param code 
      */
@@ -39,7 +42,7 @@ export class ResendService {
     }
 
     /**
-     * 超额提醒
+     * ExcessWarning
      * @param to_email 
      * @param code 
      */
