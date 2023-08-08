@@ -36,6 +36,16 @@ export class HomeService {
     if (this.eventEmitterService.addressData.has(address)) {
 
       const data = this.eventEmitterService.addressData.get(address);
+      
+      //去除data.textword中带有"\n"的字符
+      let textword = data.textword;
+      for (let i = 0; i < textword.length; i++) {
+        if (textword[i].includes("\n")) {
+          textword[i] = textword[i].replace("\n", "");
+        }
+      }
+      data.textword = textword;
+
       this.logger.log(`${address} card data: ${JSON.stringify(data)}`);
       return data;
     }
