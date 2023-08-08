@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter } from 'events';
 
 @Injectable()
 export class EventEmitterService {
-  public emitter: EventEmitter;
-  public addressData = new Map<string, any>();
+    private logger = new Logger(EventEmitterService.name);
+    public emitter: EventEmitter;
+    public addressData = new Map<string, any>();
 
-  constructor() {
-    this.emitter = new EventEmitter();
-  }
+    constructor() {
+        this.emitter = new EventEmitter();
+    }
 }

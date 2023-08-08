@@ -55,8 +55,6 @@ export class EthereumService  {
          
         } catch (error) {
             this.logger.error(error);
-            this.logger.error(error.response.status);
-            this.logger.error(error.response.headers);
         }
       }
 

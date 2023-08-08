@@ -27,7 +27,7 @@ export class ChatGPTService {
      * 
      *
      */
-    public async getKeywords(address,res,tx, days, gasFee, postNum) {
+    public async getKeywords(address,res,listener,tx, days, gasFee, postNum) {
         let allText = '';
         const payload = {
             model: 'gpt-3.5-turbo',
@@ -94,6 +94,7 @@ export class ChatGPTService {
                 res.write(`event: end\n`);
                 res.write('data: Stream ended\n\n');
                 res.end();
+                this.eventEmitterService.emitter.off('textword', listener);
                 if (this.eventEmitterService.addressData.has(address)) {
                     let data = this.eventEmitterService.addressData.get(address);
                     data.textword = allText;

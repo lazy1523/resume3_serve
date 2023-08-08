@@ -42,7 +42,7 @@ export class HomeService {
     BusinessException.throwBusinessException({ code: 1001, msg: 'no address' })
   }
 
-  async generateResumes(address: string,res:any): Promise<any> {
+  async generateResumes(address: string,res:any,listener:any): Promise<any> {
     if (!isEthereumAddress(address)) {
       BusinessException.throwBusinessException({ code: 1001, msg: 'address is not valid' })
     }
@@ -55,6 +55,7 @@ export class HomeService {
       res.write(`event: end\n`);
       res.write('data: Stream ended\n\n');
       res.end();
+      this.eventEmitterService.emitter.off('textword', listener);
       return;
     }
     const { txCount, totalGasUsed, intervalInDays } = await this.ethereumService.getTimeInterval(address);
@@ -62,7 +63,7 @@ export class HomeService {
 
     this.eventEmitterService.addressData.set(address, data);
 
-    await this.chatGPTService.getKeywords(address,res,txCount, intervalInDays, totalGasUsed, 5);
+    await this.chatGPTService.getKeywords(address,res,listener,txCount, intervalInDays, totalGasUsed, 5);
 
     return { txCount, totalGasUsed, intervalInDays } 
   }

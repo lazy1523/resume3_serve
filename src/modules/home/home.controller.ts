@@ -39,12 +39,13 @@ export class HomeController {
       'Connection': 'keep-alive',
     });
 
-    this.service.generateResumes(address,res);
-    this.eventEmitterService.emitter.on('textword', (keyword) => {
+    const listener = (keyword) => {
       this.logger.log(`controller textword: ${keyword}`);
       res.write(`data: ${keyword}\n\n`);
-    });
-  
+    };
+
+    this.service.generateResumes(address,res,listener);
+    this.eventEmitterService.emitter.on('textword', listener);
   }
 
 }
