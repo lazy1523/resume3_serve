@@ -30,6 +30,9 @@ export class EthereumService  {
             timeout: 30000,
           });
           this.logger.log(`response: ${JSON.stringify(response.data)}`);
+          if(response.data.result===0){
+            return { txCount: 0, totalGasUsed: 0 ,intervalInDays:0 }
+          }
           const transactions = response.data.result;
           const txCount=transactions.length;
           const totalCostInWei = transactions.reduce((total, tx) => {
