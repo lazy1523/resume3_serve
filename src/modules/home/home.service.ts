@@ -34,15 +34,15 @@ export class HomeService {
 
   async getResumesData(address: string): Promise<any> {
     if (this.eventEmitterService.addressData.has(address)) {
-     
-      const data= this.eventEmitterService.addressData.get(address);
+
+      const data = this.eventEmitterService.addressData.get(address);
       this.logger.log(`${address} card data: ${JSON.stringify(data)}`);
       return data;
     }
     BusinessException.throwBusinessException({ code: 1001, msg: 'no address' })
   }
 
-  async generateResumes(address: string,res:any,listener:any): Promise<any> {
+  async generateResumes(address: string, res: any, listener: any): Promise<any> {
     this.logger.log(`${address} 进入查询`);
 
     if (!isEthereumAddress(address)) {
@@ -50,8 +50,8 @@ export class HomeService {
     }
 
     if (this.eventEmitterService.addressData.has(address)) {
-     
-      const data= this.eventEmitterService.addressData.get(address);
+
+      const data = this.eventEmitterService.addressData.get(address);
       this.logger.log(`${address}重复查询Data: ${JSON.stringify(data.textword)}`);
       res.write(`data: ${JSON.stringify(data.textword)}\n\n`);
       res.write(`event: end\n`);
@@ -60,14 +60,25 @@ export class HomeService {
       this.eventEmitterService.emitter.off('textword', listener);
       return;
     }
-    const { txCount, totalGasUsed, intervalInDays } = await this.ethereumService.getTimeInterval(address);
-    const data = { txCount, totalGasUsed, intervalInDays };
+    try {
+      const { txCount, totalGasUsed, intervalInDays } = await this.ethereumService.getTimeInterval(address);
+      const data = { txCount, totalGasUsed, intervalInDays };
 
-    this.eventEmitterService.addressData.set(address, data);
+      this.eventEmitterService.addressData.set(address, data);
 
-    await this.chatGPTService.getKeywords(address,res,listener,txCount, intervalInDays, totalGasUsed, 5);
+      await this.chatGPTService.getKeywords(address, res, listener, txCount, intervalInDays, totalGasUsed, 5);
 
-    return { txCount, totalGasUsed, intervalInDays } 
+      return { txCount, totalGasUsed, intervalInDays }
+    } catch (e) {
+      this.logger.log(e)
+    } finally {
+      res.write(`event: end\n`);
+      res.write('data: Stream ended\n\n');
+      res.end();
+      this.eventEmitterService.emitter.off('textword', listener);
+    }
+
+
   }
 
 
