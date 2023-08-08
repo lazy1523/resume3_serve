@@ -40,7 +40,6 @@ export class HomeController {
     });
 
     const listener = (keyword) => {
-      this.logger.log(`controller textword: ${keyword}`);
       res.write(`data: ${keyword}\n\n`);
     };
 

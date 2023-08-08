@@ -36,13 +36,15 @@ export class HomeService {
     if (this.eventEmitterService.addressData.has(address)) {
      
       const data= this.eventEmitterService.addressData.get(address);
-      this.logger.log(`data: ${JSON.stringify(data)}`);
+      this.logger.log(`${address} card data: ${JSON.stringify(data)}`);
       return data;
     }
     BusinessException.throwBusinessException({ code: 1001, msg: 'no address' })
   }
 
   async generateResumes(address: string,res:any,listener:any): Promise<any> {
+    this.logger.log(`${address} 进入查询`);
+
     if (!isEthereumAddress(address)) {
       BusinessException.throwBusinessException({ code: 1001, msg: 'address is not valid' })
     }
@@ -50,7 +52,7 @@ export class HomeService {
     if (this.eventEmitterService.addressData.has(address)) {
      
       const data= this.eventEmitterService.addressData.get(address);
-      this.logger.log(`data: ${JSON.stringify(data.textword)}`);
+      this.logger.log(`${address}重复查询Data: ${JSON.stringify(data.textword)}`);
       res.write(`data: ${JSON.stringify(data.textword)}\n\n`);
       res.write(`event: end\n`);
       res.write('data: Stream ended\n\n');

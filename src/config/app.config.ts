@@ -11,4 +11,5 @@ export default registerAs('app', () => ({
     goerli_rpc_url: process.env.GOERLI_RPC,
     v2_test_pk: process.env.V2_TEST_PK,
     resend_key:process.env.RESEND_KEY
+    
   }));
