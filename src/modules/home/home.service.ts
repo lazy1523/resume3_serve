@@ -75,7 +75,6 @@ export class HomeService {
       res.write(`event: end\n`);
       res.write('data: Stream ended\n\n');
       res.end();
-      this.eventEmitterService.emitter.off('textword', listener);
     }
 
 
